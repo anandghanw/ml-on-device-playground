@@ -2,6 +2,8 @@
 
 This project is a tool for beginners to explore on-device ML.
 
+![screenshot](UI-Screenshot.png)
+
 ## Overview
 
 This project provides a complete environment for recording sensor data, training machine learning models, and deploying them to microcontroller devices. It's designed to help beginners understand the full workflow of on-device machine learning without requiring extensive background knowledge.
