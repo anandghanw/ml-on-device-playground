@@ -11,7 +11,7 @@ from app_styles import AppStyles
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("On-Device Machine Learning Demo")
+        self.setWindowTitle("On-Device Machine Learning Playground")
         self.resize(1200, 800)
 
         # Central widget
