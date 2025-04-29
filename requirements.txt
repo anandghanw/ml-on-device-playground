@@ -1,0 +1,8 @@
+PyQt5~=5.15.11
+numpy~=1.26.4
+pyqtgraph~=0.13.7
+matplotlib~=3.9.4
+tensorflow~=2.16.2
+seaborn~=0.13.2
+scikit-learn~=1.6.1
+pyserial~=3.5
