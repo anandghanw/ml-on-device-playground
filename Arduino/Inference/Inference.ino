@@ -10,7 +10,12 @@
 #include "model_data.h"
 
 const int numSamples = MAX_SAMPLE_LENGTH;
-const unsigned long sampleInterval = 10; // 10ms for 100Hz sampling rate
+float sampleRate = 100.0;
+unsigned long sampleInterval;   // Will be calculated based on sample rate
+
+// Sliding window parameters
+int overlapPercentage = 50;     // Adjustable: percentage of overlap (0-90)
+int slidingStep;               // Will be calculated based on overlap percentage
 
 unsigned long lastSampleTime = 0;
 int samplesRead = 0; // Start from 0 to collect a full set of samples
@@ -39,6 +44,21 @@ byte tensorArena[tensorArenaSize] __attribute__((aligned(16)));
 void setup() {
   Serial.begin(115200);
   while (!Serial);
+
+  // Calculate interval in ms from sample rate in Hz
+  sampleInterval = (unsigned long)(1000.0 / sampleRate);
+  
+  // Calculate sliding step based on overlap percentage
+  slidingStep = numSamples * (100 - overlapPercentage) / 100;
+  if (slidingStep < 1) slidingStep = 1; // Ensure at least 1 step
+  
+  Serial.print("Sliding window configuration: ");
+  Serial.print(numSamples);
+  Serial.print(" samples with ");
+  Serial.print(overlapPercentage);
+  Serial.print("% overlap (");
+  Serial.print(slidingStep);
+  Serial.println(" samples per slide)");
 
   if (myIMU.begin() != 0) {
     Serial.println("Device error");
@@ -74,21 +94,21 @@ void setup() {
 void loop() {
   unsigned long currentTime = millis();
   
-  // Sample IMU at 100Hz (every 10ms)
+  // Sample IMU at defined sample rate
   if (currentTime - lastSampleTime >= sampleInterval) {
     lastSampleTime = currentTime;
     
-    // Read acceleration data only
+    // Read acceleration data
     float aX = myIMU.readFloatAccelX();
     float aY = myIMU.readFloatAccelY();
     float aZ = myIMU.readFloatAccelZ();
 
     Serial.print("IMU:");
-    Serial.print(myIMU.readFloatAccelX());
+    Serial.print(aX);
     Serial.print(",");
-    Serial.print(myIMU.readFloatAccelY());
+    Serial.print(aY);
     Serial.print(",");
-    Serial.print(myIMU.readFloatAccelZ());
+    Serial.print(aZ);
     Serial.print("\n");
     
     // Store sensor data in input tensor
@@ -105,10 +125,10 @@ void loop() {
       if (invokeStatus != kTfLiteOk) {
         Serial.println("Invoke failed!");
         
-        // Replace infinite loop with error message and delay
-        for (int i = 0; i < 5; i++) {  // Print error 5 times
+        // Error handling
+        for (int i = 0; i < 3; i++) {
           Serial.println("Error: Inference failed. Retrying data collection.");
-          delay(1000);  // 1 second between messages
+          delay(500);
         }
         
         // Reset and try again instead of hanging
@@ -124,8 +144,17 @@ void loop() {
       }
       Serial.print("\n");
       
-      // Reset sample counter to start collecting new data
-      samplesRead = 0;
+      // Slide window by moving data
+      if (slidingStep < numSamples) {
+        // Shift data in the buffer by the sliding step
+        for (int i = 0; i < (numSamples - slidingStep) * 3; i++) {
+          tflInputTensor->data.f[i] = tflInputTensor->data.f[i + slidingStep * 3];
+        }
+        samplesRead = numSamples - slidingStep;
+      } else {
+        // No overlap, start fresh
+        samplesRead = 0;
+      }
     }
   }
 }

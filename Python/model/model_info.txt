@@ -1,0 +1,5 @@
+Model Type: Neural Network
+Model Size: 87.30 KB
+Max Sample Length: 306
+Classes: AntiClockWiseCircle,ClockWiseCircle,Null
+Generated: 2025-04-28 20:14:31

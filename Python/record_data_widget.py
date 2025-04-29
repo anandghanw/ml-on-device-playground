@@ -33,11 +33,6 @@ class RecordDataWidget(QGroupBox):
         sample_length_layout.addWidget(self.sample_length_input)
         layout.addLayout(sample_length_layout)
 
-        # Note
-        note_label = QLabel("Use the same sample length both here and in Inference.ino")
-        note_label.setStyleSheet(AppStyles.get_note_label_style())
-        layout.addWidget(note_label)
-
         # Class label input with intuitive default
         class_label_layout = QHBoxLayout()
         class_label_layout.setSpacing(AppStyles.WIDGET_SPACING)

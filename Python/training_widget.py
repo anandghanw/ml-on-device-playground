@@ -15,7 +15,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.utils import resample
 from app_styles import AppStyles
 import seaborn as sns
-from io import BytesIO
 import datetime
 
 
@@ -250,8 +249,7 @@ class TrainingWorker(QObject):
             # Adjust batch size based on data size - for tiny datasets, use batch size of 1
             batch_size = max(1, min(32, len(X_train) // 2))
 
-            # Determine epochs - more epochs for smaller datasets
-            epochs = min(50, max(30, 200 // len(X_train)))
+            epochs = max(50, len(X_train))
 
             # For very small datasets, don't use validation split
             validation_split = 0.0 if len(X_train) < 10 else 0.2
@@ -486,6 +484,8 @@ class TrainingWidget(QGroupBox):
         """Handle training completion"""
         self.model = model
 
+        model.export("model/tf_model")
+
         # Show confusion matrix
         dialog = ConfusionMatrixDialog(cm, class_names, accuracy, self)
 
@@ -530,7 +530,9 @@ class TrainingWidget(QGroupBox):
 
         try:
             # Convert TensorFlow model to TFLite format
-            converter = tf.lite.TFLiteConverter.from_keras_model(self.model)
+            # converter = tf.lite.TFLiteConverter.from_keras_model(self.model)
+
+            converter = tf.lite.TFLiteConverter.from_saved_model("model/tf_model")
 
             # Convert the model
             print("Starting TFLite conversion...")
@@ -538,7 +540,7 @@ class TrainingWidget(QGroupBox):
             print("TFLite conversion completed")
 
             # Save to file
-            tflite_path = 'model.tflite'
+            tflite_path = 'model/model.tflite'
             with open(tflite_path, 'wb') as f:
                 f.write(tflite_model)
 
@@ -562,8 +564,34 @@ class TrainingWidget(QGroupBox):
             # Save class names in exactly the order used during training
             class_names_str = ",".join(class_names)
 
-            # Create C header file
-            c_header_path = 'model_data.h'
+            # Find Arduino directory path
+            arduino_dir_name = "Arduino"
+            subdir_name = "Inference"
+            c_header_filename = "model_data.h"
+
+            # Check current and parent directory
+            current_dir = os.getcwd()
+            parent_dir = os.path.dirname(current_dir)
+
+            arduino_path = None
+
+            # Check if Arduino exists in current directory
+            if os.path.isdir(os.path.join(current_dir, arduino_dir_name)):
+                arduino_path = os.path.join(current_dir, arduino_dir_name)
+            # Otherwise, check parent directory
+            elif os.path.isdir(os.path.join(parent_dir, arduino_dir_name)):
+                arduino_path = os.path.join(parent_dir, arduino_dir_name)
+            else:
+                raise FileNotFoundError("Arduino directory not found in current or parent directory.")
+
+            # Now target the Inference subdirectory
+            inference_dir = os.path.join(arduino_path, subdir_name)
+            os.makedirs(inference_dir, exist_ok=True)  # create if not exists
+
+            # Path to the header file
+            c_header_path = os.path.join(inference_dir, c_header_filename)
+
+            # Create (or overwrite) the file
             with open(c_header_path, 'w') as f:
                 # Write header guard
                 f.write("#ifndef MODEL_DATA_H\n")
@@ -618,7 +646,7 @@ class TrainingWidget(QGroupBox):
                 f.write("#endif // MODEL_DATA_H\n")
 
             # Write to separate model_info.txt file as well for easier parsing
-            with open('model_info.txt', 'w') as f:
+            with open('model/model_info.txt', 'w') as f:
                 f.write(f"Model Type: {model_type}\n")
                 f.write(f"Model Size: {model_size_kb:.2f} KB\n")
                 f.write(f"Max Sample Length: {max_sample_length}\n")

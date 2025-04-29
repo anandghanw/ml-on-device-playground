@@ -1,5 +1,0 @@
-Model Type: Neural Network
-Model Size: 54.56 KB
-Max Sample Length: 174
-Classes: Down,Left,Null,Right,Up
-Generated: 2025-04-28 19:06:09
