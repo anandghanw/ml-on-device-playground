@@ -37,7 +37,7 @@ TfLiteTensor* tflOutputTensor = nullptr;
 
 // Create a static memory buffer for TFLM, the size may need to
 // be adjusted based on the model you are using
-constexpr int tensorArenaSize = 10 * 1024;
+constexpr int tensorArenaSize = 100 * 1024;
 byte tensorArena[tensorArenaSize] __attribute__((aligned(16)));
 
 

@@ -132,10 +132,10 @@ class TrainingWorker(QObject):
                 tf.keras.layers.Reshape((self.input_shape, 1), input_shape=(self.input_shape,)),
                 tf.keras.layers.Conv1D(filters=32, kernel_size=3, activation='relu'),
                 tf.keras.layers.MaxPooling1D(pool_size=2),
-                tf.keras.layers.Conv1D(filters=64, kernel_size=3, activation='relu'),
+                tf.keras.layers.Conv1D(filters=32, kernel_size=3, activation='relu'),
                 tf.keras.layers.MaxPooling1D(pool_size=2),
                 tf.keras.layers.Flatten(),
-                tf.keras.layers.Dense(64, activation='relu'),
+                tf.keras.layers.Dense(16, activation='relu'),
                 tf.keras.layers.Dense(self.num_classes, activation='softmax')
             ])
 
