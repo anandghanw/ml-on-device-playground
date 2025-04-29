@@ -23,7 +23,6 @@ This project provides a complete environment for recording sensor data, training
     - [Model Training](#model-training)
     - [Inference](#inference)
 - [Project Structure](#project-structure)
-- [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
 - [License](#license)
 
